@@ -44,7 +44,7 @@ def dequeue():
             ReceiptHandle = receipt_handle
         )
     else:
-        return (['Error while retrieving message from SQS!'])
+        return ['Error while retrieving message from SQS!']
         
     info = []
     info.append(res_location)
@@ -85,7 +85,7 @@ def rand_elastic_search(location, cuisine):
     # Choose random among returned list
     total_num_searches = len(search_data['hits']['hits'])
     if total_num_searches == 0:
-        return ([f'Sorry! We do not have any data for {cuisine} in {location}.'])
+        return [f'Sorry! We do not have any data for {cuisine} in {location}.']
 
     rand_idx = randint(0,total_num_searches - 1)
     
@@ -106,8 +106,6 @@ def dynamodb_search(rand_business_id):
     table_db = dynamodb.Table('YelpRestaurant')
     
     scanresult = table_db.query(KeyConditionExpression=Key('id').eq(rand_business_id))
-    print('scanresult')
-    print(scanresult)
     item = scanresult['Items'][0]
 
     name = item['name']
@@ -124,8 +122,6 @@ def dynamodb_search(rand_business_id):
 
 def sendsns(message, number):
     sns = boto3.client('sns', region_name='us-east-1')
-    print(message)
-    print(number)
     response = sns.publish(
         PhoneNumber = number,
         Message = message,
@@ -144,11 +140,14 @@ def sendsns(message, number):
 # --------------------------------- MAIN ---------------------------------
 
 def lambda_handler(event, context):
+
     # Collect message from SQS
     info = dequeue()
     location = info[0]
+
     if location.startswith('Error while'):
         print(location)
+
     else:
         cuisine = info[1]
         date = info[2]
@@ -158,13 +157,12 @@ def lambda_handler(event, context):
         
         # Choose a random restaurant with the given cuisine
         rand_business_ids = rand_elastic_search(location, cuisine)
-        print('rand_business_ids')
-        print(rand_business_ids)
     
-        if rand_business_ids[0].startswith("Sorry! We do"):
-            print(rand_business_ids[0])
+        if rand_business_ids[0].startswith('Sorry! We do'):
+            # Send failure SNS message
+            sendsns(rand_business_ids[0], '+1' + number)
+
         else:
-    
             # Find detailed information about the restaurant
             message_per_rest = []
             for i in range(len(rand_business_ids)):
@@ -173,8 +171,5 @@ def lambda_handler(event, context):
             rest_message = ", ".join(message_per_rest)
             message = f'Hello! Here are my {cuisine} restaurant(shop) suggestions for {people} people, for {date} at {time}: {rest_message}. Enjoy your meal!'
     
-            # Send SNS message
-            if message.startswith('Hello! Here'):
-                sendsns(message, "+1" + number)
-            else:
-                print ('Cannot send message')
+            # Send sucess SNS message
+            sendsns(message, '+1' + number)

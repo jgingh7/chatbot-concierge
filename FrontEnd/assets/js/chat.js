@@ -11,10 +11,7 @@ $(document).ready(function() {
   });
 
   function updateScrollbar() {
-    $messages.mCustomScrollbar("update").mCustomScrollbar('scrollTo', 'bottom', {
-      scrollInertia: 10,
-      timeout: 0
-    });
+    $(".messages").stop().animate({ scrollTop: $(".messages")[0].scrollHeight}, 1000);
   }
 
   function setDate() {

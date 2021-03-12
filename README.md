@@ -1,8 +1,8 @@
 # chatbot-concierge
 
-* SNS function may have been disabled (no SMS response)
+[Click here to access the app](http://mymychatbot.s3-website-us-east-1.amazonaws.com/).
 
-http://mymychatbot.s3-website-us-east-1.amazonaws.com/
+NOTE: SNS function may have been disabled (no SMS response)
 
 ## The chatbot concierge
 
